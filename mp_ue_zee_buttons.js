@@ -10,7 +10,7 @@ function beforeUserLoad(type, form) {
 		var systemAdmin = [3, 1032];
 
 		//Only Admin Roles can move digitalisation
-		if (isinArray(role, systemAdmin)){
+		if (isInArray(role, systemAdmin)){
 			var zeeRecordId = nlapiGetRecordId();
 			var zeeRecord = nlapiLoadRecord('partner', zeeRecordId);
 			var new_zee = zeeRecord.getFieldValue('custentity_zeesold_new_zee');
