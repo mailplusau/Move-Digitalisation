@@ -36,48 +36,69 @@ function moveLegs() {
         nlapiLogExecution('DEBUG', 'old_service_id', old_service_id);
         nlapiLogExecution('DEBUG', 'service_id', service_id);
 
-        if (count == 0) {
-            if (service_zee_id != new_zee_id) {
-                nlapiLogExecution('DEBUG', 'SERVICE NOT MOVED', service_id);
-                message += '<p>Please move service ' + service_id + ' before scheduling it.</p>';
-                next_service = true;
-            } else {
+        /*        if (count == 0) {
+                    if (service_zee_id != new_zee_id) {
+                        nlapiLogExecution('DEBUG', 'SERVICE NOT MOVED', service_id);
+                        message += '<p>Please move service ' + service_id + ' before scheduling it.</p>';
+                        next_service = true;
+                    } else {
+                        nlapiLogExecution('DEBUG', 'leg_id', leg_id);
+                        var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
+                        leg_record.setFieldValue('custrecord_service_leg_franchisee', new_zee_id);
+                        nlapiSubmitRecord(leg_record);
+                        service_count++;
+                    }
+                } else if (old_service_id != service_id || next_service == false) {
+                    if (service_zee_id != new_zee_id) {
+                        nlapiLogExecution('DEBUG', 'SERVICE NOT MOVED', service_id);
+                        message += '<p>Please move service ' + service_id + ' before scheduling it.</p>';
+                        next_service = true;
+                    } else {
+                        next_service = false;
+                        if (old_leg_id != leg_id) {
+                            nlapiLogExecution('DEBUG', 'leg_id', leg_id);
+                            var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
+                            leg_record.setFieldValue('custrecord_service_leg_franchisee', new_zee_id);
+                            nlapiSubmitRecord(leg_record);
+                            if (old_service_id != service_id) {
+                                service_count++;
+                            }
+                        }
+                    }
+                }
+                if (next_service == false) {
+                    nlapiLogExecution('DEBUG', 'freq_id', freq_id);
+                    var freq_record = nlapiLoadRecord('customrecord_service_freq', freq_id);
+                    freq_record.setFieldValue('custrecord_service_freq_franchisee', new_zee_id);
+                    freq_record.setFieldValue('custrecord_service_freq_run_plan', run);
+                    nlapiSubmitRecord(freq_record);
+                }*/
+
+        if (count == 0 && !isNullorEmpty(leg_id)) {
+            nlapiLogExecution('DEBUG', 'leg_id', leg_id);
+            var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
+            leg_record.setFieldValue('custrecord_service_leg_franchisee', new_zee_id);
+            nlapiSubmitRecord(leg_record);
+        } else {
+            if (!isNullorEmpty(leg_id) && old_leg_id != leg_id) {
                 nlapiLogExecution('DEBUG', 'leg_id', leg_id);
                 var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
                 leg_record.setFieldValue('custrecord_service_leg_franchisee', new_zee_id);
                 nlapiSubmitRecord(leg_record);
-                service_count++;
-            }
-        } else if (old_service_id != service_id || next_service == false) {
-            if (service_zee_id != new_zee_id) {
-                nlapiLogExecution('DEBUG', 'SERVICE NOT MOVED', service_id);
-                message += '<p>Please move service ' + service_id + ' before scheduling it.</p>';
-                next_service = true;
-            } else {
-                next_service = false;
-                if (old_leg_id != leg_id) {
-                    nlapiLogExecution('DEBUG', 'leg_id', leg_id);
-                    var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
-                    leg_record.setFieldValue('custrecord_service_leg_franchisee', new_zee_id);
-                    nlapiSubmitRecord(leg_record);
-                    if (old_service_id != service_id) {
-                        service_count++;
-                    }
-                }
             }
         }
-        if (next_service == false) {
-            nlapiLogExecution('DEBUG', 'freq_id', freq_id);
+
+        nlapiLogExecution('DEBUG', 'freq_id', freq_id);
+        if (!isNullorEmpty(freq_id)) {
             var freq_record = nlapiLoadRecord('customrecord_service_freq', freq_id);
             freq_record.setFieldValue('custrecord_service_freq_franchisee', new_zee_id);
             freq_record.setFieldValue('custrecord_service_freq_run_plan', run);
             nlapiSubmitRecord(freq_record);
         }
-
-
-        old_service_id = service_id;
         old_leg_id = leg_id;
         count++;
         return true;
     });
+
+    nlapiLogExecution('DEBUG', 'message', message);
 }

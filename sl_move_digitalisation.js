@@ -10,6 +10,9 @@ function moveDigitalisation(request, response) {
         var cust_id = request.getParameter('cust_id');
         var zee_id = request.getParameter('zee_id');
         var services_moved = request.getParameter('services_moved');
+        var serviceLegs_moved = request.getParameter('serviceLegs_moved');
+        var serviceLegs_inactivated = request.getParameter('serviceLegs_inactivated');
+        var run = request.getParameter('run');
 
         var inlineQty = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css"><script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><style>.mandatory{color:red;}</style>';
         inlineQty += '<div class="container" style="padding-top: 3%;"><div id="alert" class="alert alert-danger fade in hidden"></div>';
@@ -35,8 +38,8 @@ function moveDigitalisation(request, response) {
             inlineQty += '</div>';
 
             inlineQty += '<div class="form-group container">'
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-warning moveServiceLegs" value="Move Service Legs and Frequencies" style="width:100%;"></div><div class="col-sm-4"><input type="text" class="form-control serviceLegsMoved hide" readonly/></div></div>';
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-warning moveAppJobs" value="Move App Jobs" style="width:100%;" disabled></div><div class="col-sm-4"><input type="text" class="form-control appJobsMoved hide" readonly/></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveServiceLegs" value="Move Service Legs and Frequencies" style="width:100%;"></div><div class="col-sm-4"><input type="text" class="form-control serviceLegsMoved hide" readonly/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveAppJobs" value="Move App Jobs" style="width:100%;" disabled></div><div class="col-sm-4"><input type="text" class="form-control appJobsMoved hide" readonly/></div>';
 
             inlineQty += '</div>';
         }
@@ -59,16 +62,24 @@ function moveDigitalisation(request, response) {
             inlineQty += '</div>';
 
             inlineQty += '<div class="form-group container">';
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-warning moveServices" value="Move Services" style="width:100%;"></div><div class="col-sm-4"><input type="text" class="form-control servicesMoved hide" readonly/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServices" value="MOVE SERVICES" style="width:100%;"></div><div class="col-sm-6"><input type="text" class="form-control servicesMoved hide" id="servicesMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServicesMoved" class="btn btn-info servicesMoved hide" value="UPDATE"/></div></div>';
             inlineQty += '</div>';
 
-            inlineQty += '<div class="form-group container old_to_new_section">';
+            inlineQty += '<div class="form-group container" style="margin-top:50px">';
+            inlineQty += '<div class="row">';
+            inlineQty += '<div class="col-sm-2"></div>'
+            inlineQty += '<div class="col-sm-4"><div class="input-group"><input type="text" readonly value="Old Zee --> New Zee" class="form-control input-group-addon"/> <span class="input-group-addon"><input type="radio" id="old_to_new" class="old_to_new" name="radio"/></span></div></div>';
+            inlineQty += '<div class="col-sm-4"><div class="input-group"><input type="text" readonly value="Territory buying" class="form-control input-group-addon"/> <span class="input-group-addon"><input type="radio"  id="territory_buying" class="territory_buying" name="radio"/></span></div></div>';
+            inlineQty += '</div>';
+            inlineQty += '</div>';
+
+            inlineQty += '<div class="form-group container old_to_new_section hide">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-sm-12 heading1"><h4><span class="label label-default col-sm-12">SCENARIO 1 : OLD ZEE --> NEW ZEE</span></h4></div>';
             inlineQty += '</div>';
 
             inlineQty += '<div class="row" style="margin-top:10px">';
-            inlineQty += '<div class="col-sm-6"><div class="input-group"><span class="input-group-addon" id="run_text">SELECT RUN</span><select id="run" class="form-control run"><option value="0"></option>';
+            inlineQty += '<div class="col-sm-4"><div class="input-group"><span class="input-group-addon" id="run_text">SELECT RUN</span><select id="run" class="form-control run"><option value="0"></option>';
 
             var runPlanSearch = nlapiLoadSearch('customrecord_run_plan', 'customsearch_app_run_plan_active');
 
@@ -80,24 +91,27 @@ function moveDigitalisation(request, response) {
             var resultSet_runPlan = runPlanSearch.runSearch();
             var run_selection_html = '';
             resultSet_runPlan.forEachResult(function(searchResult_runPlan) {
-
-                run_selection_html += '<option value="' + searchResult_runPlan.getValue('internalid') + '">' + searchResult_runPlan.getValue('name') + '</option>'
+                if (searchResult_runPlan.getValue('internalid') == run) {
+                    run_selection_html += '<option value="' + searchResult_runPlan.getValue('internalid') + '" selected>' + searchResult_runPlan.getValue('name') + '</option>'
+                } else {
+                    run_selection_html += '<option value="' + searchResult_runPlan.getValue('internalid') + '">' + searchResult_runPlan.getValue('name') + '</option>'
+                }
                 return true;
             });
             inlineQty += run_selection_html;
             inlineQty += '</select></div></div>';
             inlineQty += '</div>';
 
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-warning moveServiceLegs" value="Move Service Legs and Frequencies" style="width:100%;" disabled></div><div class="col-sm-4"><input type="text" class="form-control serviceLegsMoved hide" readonly/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServiceLegs" value="MOVE SERVICE LEGS AND FREQUENCIES" style="width:100%;" disabled></div><div class="col-sm-6"><input type="text" class="form-control serviceLegsMoved hide" id="serviceLegsMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsMoved hide" value="UPDATE"/></div></div>';
 
             inlineQty += '</div>';
 
-            inlineQty += '<div class="form-group container territory_buying_section">';
+            inlineQty += '<div class="form-group container territory_buying_section hide">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-sm-12 heading1"><h4><span class="label label-default col-sm-12">SCENARIO 2 : TERRITORY BUYING THE ZEE</span></h4></div>';
             inlineQty += '</div>';
 
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-warning inactiveLegs" value="Inactivate Service Legs and Frequencies" style="width:100%;" disabled></div><div class="col-sm-4"><input type="text" class="form-control serviceLegsInactivated hide" readonly/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary inactivateLegs" value="INACTIVATE SERVICE LEGS AND FREQUENCIES" style="width:100%;" disabled></div><div class="col-sm-6"><input type="text" class="form-control serviceLegsInactivated hide" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsInactivated hide" value="UPDATE"/></div></div>';
 
             inlineQty += '</div>';
 
@@ -110,6 +124,8 @@ function moveDigitalisation(request, response) {
         form.addField('custpage_new_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_zee_id);
         form.addField('custpage_action', 'text', 'Customer ID').setDisplayType('hidden');
         form.addField('custpage_services_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(services_moved);
+        form.addField('custpage_servicelegs_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_moved);
+        form.addField('custpage_servicelegs_inactivated', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_inactivated);
         form.addField('custpage_run', 'text', 'Customer ID').setDisplayType('hidden');
 
         form.addSubmitButton('Move Digitalisation');
@@ -150,8 +166,13 @@ function moveDigitalisation(request, response) {
             nlapiLogExecution('DEBUG', 'params.custscript_run', params.custscript_run);
             var status = nlapiScheduleScript('customscript_ss_move_legs', 'customdeploy1', params);
             nlapiLogExecution('DEBUG', 'status', status);
-
-            nlapiSetRedirectURL('RECORD', 'partner', zee_id, false);
+            var params2 = {
+                zee_id: zee_id,
+                services_moved: 'T',
+                serviceLegs_moved: 'T',
+                run: run,
+            }
+            nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params2);
         } else if (action == 'inactivate legs and frequencies') {
             var params = {
                 custscript_zee_id_3: zee_id,
@@ -159,9 +180,12 @@ function moveDigitalisation(request, response) {
             nlapiLogExecution('DEBUG', 'params.custscript_zee_id_3', params.custscript_zee_id_3);
             var status = nlapiScheduleScript('customscript_ss_inactivate_legs', 'customdeploy1', params);
             nlapiLogExecution('DEBUG', 'status', status);
-
-            nlapiSetRedirectURL('RECORD', 'partner', zee_id, false);
+            var params2 = {
+                zee_id: zee_id,
+                services_moved: 'T',
+                serviceLegs_inactivated: 'T',
+            }
+            nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params2);
         }
-
     }
 }

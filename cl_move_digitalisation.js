@@ -10,16 +10,65 @@ var new_cust_id = nlapiGetFieldValue('custpage_new_customer_id');
 var zee_id = nlapiGetFieldValue('custpage_zee_id');
 var new_zee_id = nlapiGetFieldValue('custpage_new_zee_id');
 var services_moved = nlapiGetFieldValue('custpage_services_moved');
+var serviceLegs_moved = nlapiGetFieldValue('custpage_servicelegs_moved');
+var serviceLegs_inactivated = nlapiGetFieldValue('custpage_servicelegs_inactivated');
 var run = 0;
 
 function pageInit() {
+    if (serviceLegs_moved == 'T') {
+        $('.old_to_new_section').removeClass('hide');
+        $('.territory_buying_section').addClass('hide');
+        $('#old_to_new').attr('checked', true);
+    };
     run = $('#run option:selected').val();
     if (!isNullorEmpty(services_moved) && services_moved == 'T') {
-        $('.moveServices').removeClass('btn-warning');
-        $('.moveServices').addClass('btn-success');
-        $('.moveServiceLegs').removeAttr('disabled');
-        $('.inactivateLegs').removeAttr('disabled');
+        var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
+        var filterExpression = [
+            ["custrecord_service_franchisee", "is", zee_id],
+        ];
+        servicesSearch.setFilterExpression(filterExpression);
+        var servicesResult = servicesSearch.runSearch();
+        var servicesArray = servicesResult.getResults(0, 1000);
+        if (isNullorEmpty(servicesArray)) {
+            $('#servicesMoved').val('All services have been moved');
+            $('.moveServiceLegs').removeAttr('disabled');
+            $('.inactivateLegs').removeAttr('disabled');
+            $('.moveServices').removeClass('btn-primary');
+            $('.moveServices').addClass('btn-success');
+
+        } else {
+            console.log('servicesArray.length', servicesArray.length);
+            $('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
+            $('.moveServices').removeClass('btn-primary');
+            $('.moveServices').addClass('btn-warning');
+        }
+        $('.servicesMoved').removeClass('hide');
     }
+    if (!isNullorEmpty(serviceLegs_moved) && serviceLegs_moved == 'T') {
+        var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+        var filterExpression = [
+            ["custrecord_service_leg_franchisee", "is", zee_id],
+        ];
+        serviceLegsSearch.setFilterExpression(filterExpression);
+        var serviceLegsResult = serviceLegsSearch.runSearch();
+        var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
+        if (isNullorEmpty(serviceLegsArray)) {
+            $('#serviceLegsMoved').val('All service legs have been moved');
+            $('.moveServiceLegs').removeClass('btn-primary');
+            $('.moveServiceLegs').addClass('btn-success');
+            var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+            window.location.href = url;
+
+        } else {
+            console.log('serviceLegsArray.length', serviceLegsArray.length);
+            $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
+            $('.moveServiceLegs').removeClass('btn-primary');
+            $('.moveServiceLegs').addClass('btn-warning');
+        }
+        $('.serviceLegsMoved').removeClass('hide');
+    }
+
+
 }
 
 function saveRecord() {
@@ -151,6 +200,27 @@ $(document).on('click', '.moveServiceLegs', function(e) {
             var message = '<p>Please select a run<p>';
             showAlert(message);
         }
+        var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+        var filterExpression = [
+            ["custrecord_service_leg_franchisee", "is", zee_id],
+        ];
+        serviceLegsSearch.setFilterExpression(filterExpression);
+        var serviceLegsResult = serviceLegsSearch.runSearch();
+        var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
+        if (isNullorEmpty(serviceLegsArray)) {
+            $('#serviceLegsMoved').val('All service legs have been moved');
+            $('.moveServiceLegs').removeClass('btn-primary');
+            $('.moveServiceLegs').addClass('btn-success');
+            var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+            window.location.href = url;
+
+        } else {
+            console.log('serviceLegsArray.length', serviceLegsArray.length);
+            $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
+            $('.moveServiceLegs').removeClass('btn-primary');
+            $('.moveServiceLegs').addClass('btn-warning');
+        }
+        $('.serviceLegsMoved').removeClass('hide');
 
     }
 })
@@ -208,98 +278,6 @@ $(document).on('click', '.moveAppJobs', function(e) {
 $(document).on('click', '.moveServices', function(e) {
     nlapiSetFieldValue('custpage_action', 'move services');
     $('#submitter').trigger('click');
-
-
-    /*    var start_time = Date.now();
-        var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
-        //Move Digitalisation : New Franchisee
-        if (!isNullorEmpty(zee_id)) {
-            var filterExpression = [
-                ["custrecord_service_franchisee", "is", zee_id],
-            ];
-        }
-        servicesSearch.setFilterExpression(filterExpression);
-        var servicesResult = servicesSearch.runSearch();
-
-        var old_package;
-        var old_customer;
-        var next_customer;
-        var service_count = 0;
-        var message = '';
-
-        servicesResult.forEachResult(function(serviceResult) {
-            console.log('Remaining Usage', context.getRemainingUsage());
-            var package = serviceResult.getValue('custrecord_service_package');
-            var service = serviceResult.getValue("internalid");
-            var customer = serviceResult.getValue("custrecord_service_customer");
-            var cust_zee = serviceResult.getValue("partner", "CUSTRECORD_SERVICE_CUSTOMER", null);
-
-            if (service_count == 0) {
-                console.log('FIRST service');
-                if (cust_zee != new_zee_id) {
-                    console.log('CUSTOMER NOT MOVED', customer);
-                    message += '<p>Please move customer ' + customer + ' before moving its services.</p>';
-                    next_customer = true;
-                } else {
-                    if (!isNullorEmpty(package)) {
-                        console.log('package', package);
-                        var package_record = nlapiLoadRecord('customrecord_service_package', package);
-                        package_record.setFieldValue('custrecord_service_package_franchisee', new_zee_id);
-                        nlapiSubmitRecord(package_record);
-                    }
-                    console.log('service', service);
-                    var service_record = nlapiLoadRecord('customrecord_service', service);
-                    service_record.setFieldValue('custrecord_service_franchisee', new_zee_id);
-                    service_record.setFieldValue('custrecord_service_package', package);
-                    nlapiSubmitRecord(service_record);
-
-                    service_count++;
-                }
-            } else if (old_customer == customer && next_customer == true) {
-                //if the customer has not been moved, go to next customer
-                console.log('CUSTOMER NOT MOVED', customer);
-            } else {
-                if (cust_zee != new_zee_id) {
-                    console.log('CUSTOMER NOT MOVED', customer);
-                    message += '<p>Please move customer ' + customer + ' before moving its services.</p>';
-                    next_customer = true;
-                } else {
-                    next_customer = false;
-                    if (!isNullorEmpty(package) && old_package != package) {
-                        console.log('package', package);
-                        var package_record = nlapiLoadRecord('customrecord_service_package', package);
-                        package_record.setFieldValue('custrecord_service_package_franchisee', new_zee_id);
-                        nlapiSubmitRecord(package_record);
-                    }
-                    console.log('service', service);
-                    var service_record = nlapiLoadRecord('customrecord_service', service);
-                    service_record.setFieldValue('custrecord_service_franchisee', new_zee_id);
-                    service_record.setFieldValue('custrecord_service_package', package);
-                    nlapiSubmitRecord(service_record);
-
-                    service_count++;
-                }
-
-            }
-            old_customer = customer;
-            return true;
-
-        })*/
-    //console.log('service_count', service_count);
-    /*    $(this).removeClass('btn-warning');
-        if (service_count == 0) {
-            $(this).addClass('btn-danger');
-        } else {
-            $(this).addClass('btn-success');
-        }
-        $('.servicesMoved').val('' + service_count + ' services have been moved');
-        $('.servicesMoved').removeClass('hide');
-        if (message != '') {
-            showAlert(message);
-        } else {
-            $('.moveServiceLegs').removeAttr('disabled');
-        }
-        console.log('moving services time', Date.now() - start_time);*/
 });
 
 $(document).on('click', '.inactivateLegs', function(e) {
@@ -324,3 +302,53 @@ function showAlert(message) {
 $(document).on('click', '#alert .close', function(e) {
     $(this).parent().hide();
 });
+
+$(document).on('click', '#updateServicesMoved', function(e) {
+    var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
+    var filterExpression = [
+        ["custrecord_service_franchisee", "is", zee_id],
+    ];
+    servicesSearch.setFilterExpression(filterExpression);
+    var servicesResult = servicesSearch.runSearch();
+    var servicesArray = servicesResult.getResults(0, 1000);
+    if (isNullorEmpty(servicesArray)) {
+        $('#servicesMoved').val('All services have been moved');
+        $('.moveServiceLegs').removeAttr('disabled');
+        $('.inactivateLegs').removeAttr('disabled');
+    } else {
+        console.log('servicesArray.length', servicesArray.length);
+        $('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
+    }
+
+})
+
+$(document).on('click', '#updateServiceLegsMoved', function(e) {
+    var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+    var filterExpression = [
+        ["custrecord_service_leg_franchisee", "is", zee_id],
+    ];
+    serviceLegsSearch.setFilterExpression(filterExpression);
+    var serviceLegsResult = serviceLegsSearch.runSearch();
+    var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
+    if (isNullorEmpty(serviceLegsArray)) {
+        $('#serviceLegsMoved').val('All service legs have been moved');
+        $('.moveServiceLegs').removeClass('btn-primary');
+        $('.moveServiceLegs').addClass('btn-success');
+        var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+        window.location.href = url;
+    } else {
+        console.log('serviceLegsArray.length', serviceLegsArray.length);
+        $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
+    }
+
+})
+
+$(document).on('click', '#old_to_new', function(e) {
+    $('.old_to_new_section').removeClass('hide');
+    $('.territory_buying_section').addClass('hide');
+})
+
+$(document).on('click', '#territory_buying', function(e) {
+    $('.territory_buying_section').removeClass('hide');
+    $('.old_to_new_section').addClass('hide');
+})
