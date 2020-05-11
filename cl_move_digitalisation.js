@@ -15,57 +15,58 @@ var serviceLegs_inactivated = nlapiGetFieldValue('custpage_servicelegs_inactivat
 var run = 0;
 
 function pageInit() {
-    if (serviceLegs_moved == 'T') {
-        $('.old_to_new_section').removeClass('hide');
-        $('.territory_buying_section').addClass('hide');
-        $('#old_to_new').attr('checked', true);
-    };
-    run = $('#run option:selected').val();
-    if (!isNullorEmpty(services_moved) && services_moved == 'T') {
-        var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
-        var filterExpression = [
-            ["custrecord_service_franchisee", "is", zee_id],
-        ];
-        servicesSearch.setFilterExpression(filterExpression);
-        var servicesResult = servicesSearch.runSearch();
-        var servicesArray = servicesResult.getResults(0, 1000);
-        if (isNullorEmpty(servicesArray)) {
-            $('#servicesMoved').val('All services have been moved');
-            $('.moveServiceLegs').removeAttr('disabled');
-            $('.inactivateLegs').removeAttr('disabled');
-            $('.moveServices').removeClass('btn-primary');
-            $('.moveServices').addClass('btn-success');
-
-        } else {
-            console.log('servicesArray.length', servicesArray.length);
-            $('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
-            $('.moveServices').removeClass('btn-primary');
-            $('.moveServices').addClass('btn-warning');
+    if (!isNullorEmpty(zee_id)) {
+        run = $('#run option:selected').val();
+        if (!isNullorEmpty(services_moved) && services_moved == 'T') {
+            var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
+            var filterExpression = [
+                ["custrecord_service_franchisee", "is", zee_id],
+            ];
+            servicesSearch.setFilterExpression(filterExpression);
+            var servicesResult = servicesSearch.runSearch();
+            var servicesArray = servicesResult.getResults(0, 1000);
+            if (isNullorEmpty(servicesArray)) {
+                $('#servicesMoved').val('All services have been moved');
+                $('.moveServiceLegs').removeAttr('disabled');
+                $('.inactivateLegs').removeAttr('disabled');
+                $('.moveServices').removeClass('btn-primary');
+                $('.moveServices').addClass('btn-success');
+                $('.radio_section').removeClass('hide');
+            } else {
+                console.log('servicesArray.length', servicesArray.length);
+                $('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
+                $('.moveServices').removeClass('btn-primary');
+                $('.moveServices').addClass('btn-warning');
+                
+            }
+            $('.servicesMoved').removeClass('hide');
         }
-        $('.servicesMoved').removeClass('hide');
-    }
-    if (!isNullorEmpty(serviceLegs_moved) && serviceLegs_moved == 'T') {
-        var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
-        var filterExpression = [
-            ["custrecord_service_leg_franchisee", "is", zee_id],
-        ];
-        serviceLegsSearch.setFilterExpression(filterExpression);
-        var serviceLegsResult = serviceLegsSearch.runSearch();
-        var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
-        if (isNullorEmpty(serviceLegsArray)) {
-            $('#serviceLegsMoved').val('All service legs have been moved');
-            $('.moveServiceLegs').removeClass('btn-primary');
-            $('.moveServiceLegs').addClass('btn-success');
-            var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
-            window.location.href = url;
+        if (!isNullorEmpty(serviceLegs_moved) && serviceLegs_moved == 'T') {
+            $('.old_to_new_section').removeClass('hide');
+            $('.territory_buying_section').addClass('hide');
+            $('#old_to_new').attr('checked', true);
+            var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+            var filterExpression = [
+                ["custrecord_service_leg_franchisee", "is", zee_id],
+            ];
+            serviceLegsSearch.setFilterExpression(filterExpression);
+            var serviceLegsResult = serviceLegsSearch.runSearch();
+            var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
+            if (isNullorEmpty(serviceLegsArray)) {
+                $('#serviceLegsMoved').val('All service legs have been moved');
+                $('.moveServiceLegs').removeClass('btn-primary');
+                $('.moveServiceLegs').addClass('btn-success');
+                var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+                window.location.href = url;
 
-        } else {
-            console.log('serviceLegsArray.length', serviceLegsArray.length);
-            $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
-            $('.moveServiceLegs').removeClass('btn-primary');
-            $('.moveServiceLegs').addClass('btn-warning');
+            } else {
+                console.log('serviceLegsArray.length', serviceLegsArray.length);
+                $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
+                $('.moveServiceLegs').removeClass('btn-primary');
+                $('.moveServiceLegs').addClass('btn-warning');
+            }
+            $('.serviceLegsMoved').removeClass('hide');
         }
-        $('.serviceLegsMoved').removeClass('hide');
     }
 
 
@@ -76,8 +77,13 @@ function saveRecord() {
 }
 
 function onclick_back() {
-    var url = baseURL + "/app/common/entity/custjob.nl?id=" + cust_id;
-    window.location.href = url;
+    if (!isNullorEmpty(cust_id)) {
+        var url = baseURL + "/app/common/entity/custjob.nl?id=" + cust_id;
+        window.location.href = url;
+    } else if (!isNullorEmpty(zee_id)) {
+        var url = baseURL + "/app/common/entity/partner.nl?id=" + zee_id;
+        window.location.href = url;
+    }
 }
 
 $(document).on('change', '#run', function(e) {

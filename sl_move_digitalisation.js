@@ -62,10 +62,10 @@ function moveDigitalisation(request, response) {
             inlineQty += '</div>';
 
             inlineQty += '<div class="form-group container">';
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServices" value="MOVE SERVICES" style="width:100%;"></div><div class="col-sm-6"><input type="text" class="form-control servicesMoved hide" id="servicesMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServicesMoved" class="btn btn-info servicesMoved hide" value="UPDATE"/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServices" value="MOVE SERVICES" style="width:100%;"></div><div class="col-sm-6"><input type="text" class="form-control servicesMoved hide" id="servicesMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServicesMoved" class="btn btn-info servicesMoved hide" value="UPDATE"style="width:100%"/></div></div>';
             inlineQty += '</div>';
 
-            inlineQty += '<div class="form-group container" style="margin-top:50px">';
+            inlineQty += '<div class="form-group container radio_section hide" style="margin-top:50px">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-sm-2"></div>'
             inlineQty += '<div class="col-sm-4"><div class="input-group"><input type="text" readonly value="Old Zee --> New Zee" class="form-control input-group-addon"/> <span class="input-group-addon"><input type="radio" id="old_to_new" class="old_to_new" name="radio"/></span></div></div>';
@@ -102,7 +102,7 @@ function moveDigitalisation(request, response) {
             inlineQty += '</select></div></div>';
             inlineQty += '</div>';
 
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServiceLegs" value="MOVE SERVICE LEGS AND FREQUENCIES" style="width:100%;" disabled></div><div class="col-sm-6"><input type="text" class="form-control serviceLegsMoved hide" id="serviceLegsMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsMoved hide" value="UPDATE"/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServiceLegs" value="MOVE SERVICE LEGS AND FREQUENCIES" style="width:100%;" disabled></div><div class="col-sm-6"><input type="text" class="form-control serviceLegsMoved hide" id="serviceLegsMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsMoved hide" value="UPDATE" style="width:100%"/></div></div>';
 
             inlineQty += '</div>';
 
@@ -111,7 +111,7 @@ function moveDigitalisation(request, response) {
             inlineQty += '<div class="col-sm-12 heading1"><h4><span class="label label-default col-sm-12">SCENARIO 2 : TERRITORY BUYING THE ZEE</span></h4></div>';
             inlineQty += '</div>';
 
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary inactivateLegs" value="INACTIVATE SERVICE LEGS AND FREQUENCIES" style="width:100%;" disabled></div><div class="col-sm-6"><input type="text" class="form-control serviceLegsInactivated hide" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsInactivated hide" value="UPDATE"/></div></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary inactivateLegs" value="INACTIVATE SERVICE LEGS AND FREQUENCIES" style="width:100%;" disabled></div><div class="col-sm-6"><input type="text" class="form-control serviceLegsInactivated hide" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsInactivated hide" value="UPDATE"style="width:100%"/></div></div>';
 
             inlineQty += '</div>';
 
