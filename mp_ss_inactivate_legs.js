@@ -4,7 +4,7 @@ var adhocInvDeploy = 'customdeploy1';
 var prevInvDeploy = null;
 
 function inactivateLegs() {
-    var zee_id = parseInt(ctx.getSetting('SCRIPT', 'custscript_zee_id_2'));
+    var zee_id = parseInt(ctx.getSetting('SCRIPT', 'custscript_zee_id_3'));
     nlapiLogExecution('DEBUG', 'zee_id', zee_id);
 
     var legsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
@@ -21,24 +21,28 @@ function inactivateLegs() {
         var leg_id = legResult.getValue("internalid");
         var freq_id = legResult.getValue("internalid", "CUSTRECORD_SERVICE_FREQ_STOP", null);
 
-        nlapiLogExecution('DEBUG', 'service_id', service_id);
-
         if (count == 0) {
             nlapiLogExecution('DEBUG', 'leg_id', leg_id);
-            var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
-            leg_record.setFieldValue('isinactive', 'T');
-            nlapiSubmitRecord(leg_record);
+            if (!isNullotEmpty(leg_id)) {
+                var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
+                leg_record.setFieldValue('isinactive', 'T');
+                nlapiSubmitRecord(leg_record);
+            }
         } else if (old_leg_id != leg_id) {
             nlapiLogExecution('DEBUG', 'leg_id', leg_id);
-            var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
-            leg_record.setFieldValue('isinactive', 'T');
-            nlapiSubmitRecord(leg_record);
+            if (!isNullotEmpty(leg_id)) {
+                var leg_record = nlapiLoadRecord('customrecord_service_leg', leg_id);
+                leg_record.setFieldValue('isinactive', 'T');
+                nlapiSubmitRecord(leg_record);
+            }
         }
 
         nlapiLogExecution('DEBUG', 'freq_id', freq_id);
-        var freq_record = nlapiLoadRecord('customrecord_service_freq', freq_id);
-        freq_record.setFieldValue('isinactive', 'T');
-        nlapiSubmitRecord(freq_record);
+        if (!isNullorEmpty(freq_id)) {
+            var freq_record = nlapiLoadRecord('customrecord_service_freq', freq_id);
+            freq_record.setFieldValue('isinactive', 'T');
+            nlapiSubmitRecord(freq_record);
+        }
 
         old_leg_id = leg_id;
         count++;

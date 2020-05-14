@@ -14,59 +14,89 @@ var serviceLegs_moved = nlapiGetFieldValue('custpage_servicelegs_moved');
 var serviceLegs_inactivated = nlapiGetFieldValue('custpage_servicelegs_inactivated');
 var run = 0;
 
+var servicesLength = nlapiGetFieldValue('custpage_services_length');
+var legsLength = nlapiGetFieldValue('custpage_legs_length');
+
+if (!isNullorEmpty(services_moved) && servicesLength != 0) {
+    var progressBar = setInterval(updateProgressBar, 5000, 'services');
+} else if (!isNullorEmpty(serviceLegs_moved) && legsLength != 0) {
+    var progressBar = setInterval(updateProgressBar, 5000, 'legs_and_frequencies');
+} else if (!isNullorEmpty(serviceLegs_inactivated) && legsLength != 0) {
+    var progressBar = setInterval(updateProgressBar, 5000, 'inactivate_legs_and_frequencies');
+}
+
+
 function pageInit() {
     if (!isNullorEmpty(zee_id)) {
         run = $('#run option:selected').val();
-        if (!isNullorEmpty(services_moved) && services_moved == 'T') {
-            var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
-            var filterExpression = [
-                ["custrecord_service_franchisee", "is", zee_id],
-            ];
-            servicesSearch.setFilterExpression(filterExpression);
-            var servicesResult = servicesSearch.runSearch();
-            var servicesArray = servicesResult.getResults(0, 1000);
-            if (isNullorEmpty(servicesArray)) {
-                $('#servicesMoved').val('All services have been moved');
-                $('.moveServiceLegs').removeAttr('disabled');
-                $('.inactivateLegs').removeAttr('disabled');
-                $('.moveServices').removeClass('btn-primary');
-                $('.moveServices').addClass('btn-success');
-                $('.radio_section').removeClass('hide');
-            } else {
-                console.log('servicesArray.length', servicesArray.length);
-                $('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
-                $('.moveServices').removeClass('btn-primary');
-                $('.moveServices').addClass('btn-warning');
-                
-            }
-            $('.servicesMoved').removeClass('hide');
+        if (servicesLength == 0) {
+            $('.radio_section').removeClass('hide');
         }
         if (!isNullorEmpty(serviceLegs_moved) && serviceLegs_moved == 'T') {
+            $('.radio_section').removeClass('hide');
             $('.old_to_new_section').removeClass('hide');
             $('.territory_buying_section').addClass('hide');
             $('#old_to_new').attr('checked', true);
-            var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
-            var filterExpression = [
-                ["custrecord_service_leg_franchisee", "is", zee_id],
-            ];
-            serviceLegsSearch.setFilterExpression(filterExpression);
-            var serviceLegsResult = serviceLegsSearch.runSearch();
-            var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
-            if (isNullorEmpty(serviceLegsArray)) {
-                $('#serviceLegsMoved').val('All service legs have been moved');
-                $('.moveServiceLegs').removeClass('btn-primary');
-                $('.moveServiceLegs').addClass('btn-success');
-                var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
-                window.location.href = url;
-
-            } else {
-                console.log('serviceLegsArray.length', serviceLegsArray.length);
-                $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
-                $('.moveServiceLegs').removeClass('btn-primary');
-                $('.moveServiceLegs').addClass('btn-warning');
-            }
-            $('.serviceLegsMoved').removeClass('hide');
+            $('#old_to_new').attr('disabled', true);
+            $('#territory_buying').attr('disabled', true);
+        } else if (!isNullorEmpty(serviceLegs_inactivated) && serviceLegs_inactivated == 'T') {
+            $('.radio_section').removeClass('hide');
+            $('.old_to_new_section').addClass('hide');
+            $('.territory_buying_section').removeClass('hide');
+            $('#territory_buying').attr('checked', true);
+            $('#old_to_new').attr('disabled', true);
+            $('#territory_buying').attr('disabled', true);
         }
+        /*        if (!isNullorEmpty(services_moved) && services_moved == 'T') {
+                    var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
+                    var filterExpression = [
+                        ["custrecord_service_franchisee", "is", zee_id],
+                    ];
+                    servicesSearch.setFilterExpression(filterExpression);
+                    var servicesResult = servicesSearch.runSearch();
+                    var servicesArray = servicesResult.getResults(0, 1000);
+                    if (isNullorEmpty(servicesArray)) {
+                        $('#servicesMoved').val('All services have been moved');
+                        $('.moveServiceLegs').removeAttr('disabled');
+                        $('.inactivateLegs').removeAttr('disabled');
+                        $('.moveServices').removeClass('btn-primary');
+                        $('.moveServices').addClass('btn-success');
+                        $('.radio_section').removeClass('hide');
+                    } else {
+                        console.log('servicesArray.length', servicesArray.length);
+                        //$('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
+                        $('.moveServices').removeClass('btn-primary');
+                        $('.moveServices').addClass('btn-warning');
+                        setInterval(updateProgressBar, 5000);
+                    }
+                    $('.servicesMoved').removeClass('hide');
+                }*/
+        /*        if (!isNullorEmpty(serviceLegs_moved) && serviceLegs_moved == 'T') {
+                    $('.old_to_new_section').removeClass('hide');
+                    $('.territory_buying_section').addClass('hide');
+                    $('#old_to_new').attr('checked', true);
+                    var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+                    var filterExpression = [
+                        ["custrecord_service_leg_franchisee", "is", zee_id],
+                    ];
+                    serviceLegsSearch.setFilterExpression(filterExpression);
+                    var serviceLegsResult = serviceLegsSearch.runSearch();
+                    var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
+                    if (isNullorEmpty(serviceLegsArray)) {
+                        $('#serviceLegsMoved').val('All service legs have been moved');
+                        $('.moveServiceLegs').removeClass('btn-primary');
+                        $('.moveServiceLegs').addClass('btn-success');
+                        var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+                        window.location.href = url;
+
+                    } else {
+                        console.log('serviceLegsArray.length', serviceLegsArray.length);
+                        $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
+                        $('.moveServiceLegs').removeClass('btn-primary');
+                        $('.moveServiceLegs').addClass('btn-warning');
+                    }
+                    $('.serviceLegsMoved').removeClass('hide');
+                }*/
     }
 
 
@@ -206,27 +236,27 @@ $(document).on('click', '.moveServiceLegs', function(e) {
             var message = '<p>Please select a run<p>';
             showAlert(message);
         }
-        var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
-        var filterExpression = [
-            ["custrecord_service_leg_franchisee", "is", zee_id],
-        ];
-        serviceLegsSearch.setFilterExpression(filterExpression);
-        var serviceLegsResult = serviceLegsSearch.runSearch();
-        var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
-        if (isNullorEmpty(serviceLegsArray)) {
-            $('#serviceLegsMoved').val('All service legs have been moved');
-            $('.moveServiceLegs').removeClass('btn-primary');
-            $('.moveServiceLegs').addClass('btn-success');
-            var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
-            window.location.href = url;
+        /*        var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+                var filterExpression = [
+                    ["custrecord_service_leg_franchisee", "is", zee_id],
+                ];
+                serviceLegsSearch.setFilterExpression(filterExpression);
+                var serviceLegsResult = serviceLegsSearch.runSearch();
+                var serviceLegsArray = serviceLegsResult.getResults(0, 1000);
+                if (isNullorEmpty(serviceLegsArray)) {
+                    $('#serviceLegsMoved').val('All service legs have been moved');
+                    $('.moveServiceLegs').removeClass('btn-primary');
+                    $('.moveServiceLegs').addClass('btn-success');
+                    var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+                    window.location.href = url;
 
-        } else {
-            console.log('serviceLegsArray.length', serviceLegsArray.length);
-            $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
-            $('.moveServiceLegs').removeClass('btn-primary');
-            $('.moveServiceLegs').addClass('btn-warning');
-        }
-        $('.serviceLegsMoved').removeClass('hide');
+                } else {
+                    console.log('serviceLegsArray.length', serviceLegsArray.length);
+                    $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
+                    $('.moveServiceLegs').removeClass('btn-primary');
+                    $('.moveServiceLegs').addClass('btn-warning');
+                }
+                $('.serviceLegsMoved').removeClass('hide');*/
 
     }
 })
@@ -309,7 +339,7 @@ $(document).on('click', '#alert .close', function(e) {
     $(this).parent().hide();
 });
 
-$(document).on('click', '#updateServicesMoved', function(e) {
+/*$(document).on('click', '#updateServicesMoved', function(e) {
     var servicesSearch = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
     var filterExpression = [
         ["custrecord_service_franchisee", "is", zee_id],
@@ -326,9 +356,9 @@ $(document).on('click', '#updateServicesMoved', function(e) {
         $('#servicesMoved').val('' + servicesArray.length + ' services left to be moved');
     }
 
-})
+})*/
 
-$(document).on('click', '#updateServiceLegsMoved', function(e) {
+/*$(document).on('click', '#updateServiceLegsMoved', function(e) {
     var serviceLegsSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
     var filterExpression = [
         ["custrecord_service_leg_franchisee", "is", zee_id],
@@ -347,7 +377,7 @@ $(document).on('click', '#updateServiceLegsMoved', function(e) {
         $('#serviceLegsMoved').val('' + serviceLegsArray.length + ' records left to be moved');
     }
 
-})
+})*/
 
 $(document).on('click', '#old_to_new', function(e) {
     $('.old_to_new_section').removeClass('hide');
@@ -358,3 +388,67 @@ $(document).on('click', '#territory_buying', function(e) {
     $('.territory_buying_section').removeClass('hide');
     $('.old_to_new_section').addClass('hide');
 })
+
+function updateProgressBar(type) {
+    console.log("updateProgressBar is running", type);
+    var nb_records_left_to_move = getResultSetLength(type, zee_id);
+    console.log('nb_records_left_to_move', nb_records_left_to_move);
+    if (nb_records_left_to_move == 0) {
+        clearInterval(progressBar);
+        console.log('clear progress bar');
+        $('#progress-records-' + type + '').attr('class', 'progress-bar progress-bar-success');
+        if (type == 'services') {
+            $('.radio_section').removeClass('hide');
+        } else if (type == 'legs_and_frequencies') {
+            var url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list') + '&zee=' + new_zee_id;
+            window.location.href = url;
+        }
+    } else {
+        $('#progress-records-' + type + '').attr('class', 'progress-bar progress-bar-warning');
+    }
+
+    if (type == 'services') {
+        var nb_records_total = servicesLength;
+    } else if (type == 'legs_and_frequencies' || type == 'inactivate_legs_and_frequencies') {
+        var nb_records_total = legsLength;
+    }
+
+    var nb_records_moved = nb_records_total - nb_records_left_to_move;
+    var width = parseInt((nb_records_moved / nb_records_total) * 100);
+
+    $('#progress-records-' + type + '').attr('aria-valuenow', nb_records_moved);
+    $('#progress-records-' + type + '').attr('style', 'width:' + width + '%');
+    $('#progress-records-' + type + '').text('Records moved : ' + nb_records_moved + ' / ' + nb_records_total);
+    console.log('end of progress bar');
+}
+
+function getResultSetLength(type, zee_id) {
+    if (type == 'services') {
+        nlapiLogExecution('DEBUG', 'services');
+        var search = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
+        var filterExpression = [
+            ["custrecord_service_franchisee", "is", zee_id],
+        ];
+    } else if (type == 'legs_and_frequencies') {
+        nlapiLogExecution('DEBUG', 'legs_and_frequencies');
+        var search = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+        var filterExpression = [
+            ["custrecord_service_leg_franchisee", "is", zee_id],
+        ];
+    } else if (type == "inactivate_legs_and_frequencies") {
+        nlapiLogExecution('DEBUG', 'inactivate_legs_and_frequencies');
+        var search = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+        var filterExpression = [
+            ["custrecord_service_leg_franchisee", "is", zee_id],
+            ["isinactive", "is", 'F'],
+        ];
+    }
+    search.setFilterExpression(filterExpression);
+    var results = search.runSearch();
+    var resultsSet = results.getResults(0, 1000);
+    if (!isNullorEmpty(resultsSet)) {
+        return parseInt(resultsSet.length)
+    } else {
+        return 0;
+    }
+}
