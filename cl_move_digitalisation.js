@@ -27,6 +27,7 @@ if (!isNullorEmpty(services_moved) && servicesLength != 0) {
 
 
 function pageInit() {
+    $('#tbl_submitter').addClass('hide');
     if (!isNullorEmpty(zee_id)) {
         run = $('#run option:selected').val();
         if (servicesLength == 0) {
@@ -204,10 +205,30 @@ $(document).on('click', '.moveServiceLegs', function(e) {
             return true;
         });
 
+        //CHECK IF THE CUSTOMER IF FULLY SCHEDULED
         if (!isNullorEmpty(new_customer_id)) {
-            var new_customer_record = nlapiLoadRecord('customer', new_customer_id);
-            new_customer_record.setFieldValue('custentity_run_scheduled', run_scheduled);
-            nlapiSubmitRecord(new_customer_record);
+            var customerScheduled = true;
+            var serviceSearch = nlapiLoadSearch('customrecord_service', 'customsearch_rp_services');
+
+            var newFilters = new Array();
+            newFilters[newFilters.length] = new nlobjSearchFilter('custrecord_service_customer', null, 'is', new_customer_id);
+            serviceSearch.addFilters(newFilters);
+            var resultSetService = serviceSearch.runSearch();
+            resultSetService.forEachResult(function(searchResult) {
+                var scheduleRun = searchResult.getValue("custrecord_service_run_scheduled", null, "GROUP");
+                console.log('scheduleRun', scheduleRun);
+                if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
+                    customerScheduled = false;
+                    return false;
+                }
+                return true;
+            });
+            console.log('customerScheduled', customerScheduled);
+            if (customerScheduled == true) {
+                var customer_record = nlapiLoadRecord('customer', new_customer_id);
+                customer_record.setFieldValue('custentity_run_scheduled', 1);
+                nlapiSubmitRecord(customer_record);
+            }
         }
 
         $(this).removeClass('btn-warning');
@@ -309,6 +330,7 @@ $(document).on('click', '.moveAppJobs', function(e) {
 
     $('.appJobsMoved').val('' + job_count + ' jobs have been moved');
     $('.appJobsMoved').removeClass('hide');
+    $('#tbl_submitter').removeClass('hide');
 });
 
 $(document).on('click', '.moveServices', function(e) {

@@ -29,6 +29,7 @@ function moveDigitalisation(request, response) {
             var cust_name = cust_record.getFieldValue('companyname');
             var new_cust_id = cust_record.getFieldValue('custentity_new_customer');
             var new_cust_name = cust_record.getFieldText('custentity_new_customer');
+            var cust_zee_id = cust_record.getFieldValue('partner');
 
             inlineQty += '<div class="form-group container">'
             inlineQty += '<div class="row">';
@@ -44,6 +45,11 @@ function moveDigitalisation(request, response) {
             inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveAppJobs" value="Move App Jobs" style="width:100%;" disabled></div><div class="col-sm-4"><input type="text" class="form-control appJobsMoved hide" readonly/></div>';
 
             inlineQty += '</div>';
+
+            form.addField('custpage_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(cust_id);
+            form.addField('custpage_new_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_cust_id);
+            form.addField('custpage_cust_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(cust_zee_id);
+            form.addSubmitButton('Customer List View');
         }
 
         //NEW ZEE PROCESS
@@ -133,23 +139,21 @@ function moveDigitalisation(request, response) {
 
             inlineQty += '</div></div></div>';
 
+            form.addField('custpage_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(zee_id);
+            form.addField('custpage_new_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_zee_id);
+            form.addField('custpage_action', 'text', 'Customer ID').setDisplayType('hidden');
+            form.addField('custpage_services_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(services_moved);
+            form.addField('custpage_servicelegs_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_moved);
+            form.addField('custpage_servicelegs_inactivated', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_inactivated);
+            form.addField('custpage_run', 'text', 'Customer ID').setDisplayType('hidden');
+            form.addField('custpage_services_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(servicesLength);
+            form.addField('custpage_legs_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(legsLength);
+
+            form.addSubmitButton('Move Digitalisation');
         }
 
         form.addField('preview_table', 'inlinehtml', '').setLayoutType('startrow').setDefaultValue(inlineQty);
-        form.addField('custpage_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(cust_id);
-        form.addField('custpage_new_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_cust_id);
-        form.addField('custpage_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(zee_id);
-        form.addField('custpage_new_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_zee_id);
-        form.addField('custpage_action', 'text', 'Customer ID').setDisplayType('hidden');
-        form.addField('custpage_services_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(services_moved);
-        form.addField('custpage_servicelegs_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_moved);
-        form.addField('custpage_servicelegs_inactivated', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_inactivated);
-        form.addField('custpage_run', 'text', 'Customer ID').setDisplayType('hidden');
-        form.addField('custpage_services_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(servicesLength);
-        form.addField('custpage_legs_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(legsLength);
 
-
-        form.addSubmitButton('Move Digitalisation');
         form.addButton('back', 'Back', 'onclick_back()');
         form.setScript('customscript_cl_move_digitalisation');
         response.writePage(form);
@@ -163,51 +167,62 @@ function moveDigitalisation(request, response) {
         var legsLength = request.getParameter('custpage_legs_length');
         nlapiLogExecution('DEBUG', 'action', action);
 
-        if (action == 'move services') {
+        var cust_zee_id = request.getParameter('custpage_cust_zee_id');
+
+        if (!isNullorEmpty(zee_id)) {
+            if (action == 'move services') {
+                var params = {
+                    custscript_zee_id: zee_id,
+                    custscript_new_zee_id: new_zee_id,
+                }
+                var status = nlapiScheduleScript('customscript_ss_move_services', 'customdeploy1', params);
+                nlapiLogExecution('DEBUG', 'status', status);
+                var params_servicesProgress = {
+                    zee_id: zee_id,
+                    services_moved: 'T',
+                    servicesLength: parseInt(servicesLength),
+                    legsLength: parseInt(legsLength),
+                }
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_servicesProgress);
+            } else if (action == 'move legs and frequencies') {
+                var params = {
+                    custscript_zee_id_2: zee_id,
+                    custscript_new_zee_id_2: new_zee_id,
+                    custscript_run: run,
+                }
+                var status = nlapiScheduleScript('customscript_ss_move_legs', 'customdeploy1', params);
+                nlapiLogExecution('DEBUG', 'status', status);
+                var params_legsProgress = {
+                    zee_id: zee_id,
+                    //services_moved: 'T',
+                    serviceLegs_moved: 'T',
+                    run: run,
+                    servicesLength: parseInt(servicesLength),
+                    legsLength: parseInt(legsLength),
+                }
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress);
+            } else if (action == 'inactivate legs and frequencies') {
+                var params = {
+                    custscript_zee_id_3: zee_id,
+                }
+                var status = nlapiScheduleScript('customscript_ss_inactivate_legs', 'customdeploy1', params);
+                nlapiLogExecution('DEBUG', 'status', status);
+                var params_legsProgress_inactivate = {
+                    zee_id: zee_id,
+                    //services_moved: 'T',
+                    serviceLegs_inactivated: 'T',
+                    servicesLength: parseInt(servicesLength),
+                    legsLength: parseInt(legsLength),
+                }
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress_inactivate);
+            }
+        } else {
             var params = {
-                custscript_zee_id: zee_id,
-                custscript_new_zee_id: new_zee_id,
+                scriptid: 'customscript_sl_full_calendar',
+                deployid: 'customdeploy_sl_full_calender',
+                zee: cust_zee_id
             }
-            var status = nlapiScheduleScript('customscript_ss_move_services', 'customdeploy1', params);
-            nlapiLogExecution('DEBUG', 'status', status);
-            var params_servicesProgress = {
-                zee_id: zee_id,
-                services_moved: 'T',
-                servicesLength: parseInt(servicesLength),
-                legsLength: parseInt(legsLength),
-            }
-            nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_servicesProgress);
-        } else if (action == 'move legs and frequencies') {
-            var params = {
-                custscript_zee_id_2: zee_id,
-                custscript_new_zee_id_2: new_zee_id,
-                custscript_run: run,
-            }
-            var status = nlapiScheduleScript('customscript_ss_move_legs', 'customdeploy1', params);
-            nlapiLogExecution('DEBUG', 'status', status);
-            var params_legsProgress = {
-                zee_id: zee_id,
-                //services_moved: 'T',
-                serviceLegs_moved: 'T',
-                run: run,
-                servicesLength: parseInt(servicesLength),
-                legsLength: parseInt(legsLength),
-            }
-            nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress);
-        } else if (action == 'inactivate legs and frequencies') {
-            var params = {
-                custscript_zee_id_3: zee_id,
-            }
-            var status = nlapiScheduleScript('customscript_ss_inactivate_legs', 'customdeploy1', params);
-            nlapiLogExecution('DEBUG', 'status', status);
-            var params_legsProgress_inactivate = {
-                zee_id: zee_id,
-                //services_moved: 'T',
-                serviceLegs_inactivated: 'T',
-                servicesLength: parseInt(servicesLength),
-                legsLength: parseInt(legsLength),
-            }
-            nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress_inactivate);
+            nlapiSetRedirectURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list', null, params);
         }
     }
 }
