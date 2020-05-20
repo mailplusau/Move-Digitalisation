@@ -12,9 +12,13 @@ function moveDigitalisation(request, response) {
         var services_moved = request.getParameter('services_moved');
         var serviceLegs_moved = request.getParameter('serviceLegs_moved');
         var serviceLegs_inactivated = request.getParameter('serviceLegs_inactivated');
+        var jobs_moved = request.getParameter('jobs_moved');
         var run = request.getParameter('run');
         var servicesLength = request.getParameter('servicesLength');
         var legsLength = request.getParameter('legsLength');
+        var jobsLength = request.getParameter('jobsLength');
+
+
 
         var inlineQty = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css"><script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><style>.mandatory{color:red;}</style>';
         inlineQty += '<div class="container" style="padding-top: 3%;"><div id="alert" class="alert alert-danger fade in hidden"></div>';
@@ -31,6 +35,13 @@ function moveDigitalisation(request, response) {
             var new_cust_name = cust_record.getFieldText('custentity_new_customer');
             var cust_zee_id = cust_record.getFieldValue('partner');
 
+            if (isNullorEmpty(legsLength)) {
+                legsLength = getResultSetLength('legs_and_frequencies', zee_id, cust_id);
+            }
+            if (isNullorEmpty(jobsLength)) {
+                jobsLength = getResultSetLength('jobs', zee_id, cust_id);
+            }
+
             inlineQty += '<div class="form-group container">'
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-sm-6"><div class="input-group"><span class="input-group-addon" style="font-weight:bold;">MOVE DIGITALISATION FROM</span>';
@@ -41,15 +52,25 @@ function moveDigitalisation(request, response) {
             inlineQty += '</div>';
 
             inlineQty += '<div class="form-group container">'
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveServiceLegs" value="Move Service Legs and Frequencies" style="width:100%;"></div><div class="col-sm-4"><input type="text" class="form-control serviceLegsMoved hide" readonly/></div></div>';
-            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveAppJobs" value="Move App Jobs" style="width:100%;" disabled></div><div class="col-sm-4"><input type="text" class="form-control appJobsMoved hide" readonly/></div>';
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveServiceLegs" value="Move Service Legs and Frequencies" style="width:100%;"></div>';
+            inlineQty += '<div class="col-sm-9">';
+            inlineQty += progressBar('legs_and_frequencies', legsLength);
+            inlineQty += '</div></div>';
+
+            inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-3"><input type="button" class="btn btn-primary moveAppJobs" value="Move App Jobs" style="width:100%;" disabled></div>';
+            inlineQty += '<div class="col-sm-9">';
+            inlineQty += progressBar('jobs', jobsLength);
+            inlineQty += '</div></div>';
 
             inlineQty += '</div>';
 
             form.addField('custpage_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(cust_id);
             form.addField('custpage_new_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_cust_id);
             form.addField('custpage_cust_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(cust_zee_id);
-            form.addSubmitButton('Customer List View');
+            form.addField('custpage_servicelegs_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_moved);
+            form.addField('custpage_jobs_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(jobs_moved);
+            form.addField('custpage_legs_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(legsLength);
+            form.addField('custpage_jobs_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(jobsLength);
         }
 
         //NEW ZEE PROCESS
@@ -62,10 +83,10 @@ function moveDigitalisation(request, response) {
             var new_zee_name = zee_record.getFieldText('custentity_zeesold_new_zee');
 
             if (isNullorEmpty(servicesLength)) {
-                servicesLength = getResultSetLength('services', zee_id);
+                servicesLength = getResultSetLength('services', zee_id, cust_id);
             }
             if (isNullorEmpty(legsLength)) {
-                legsLength = getResultSetLength('legs_and_frequencies', zee_id);
+                legsLength = getResultSetLength('legs_and_frequencies', zee_id, cust_id);
             }
 
             inlineQty += '<div class="form-group container">'
@@ -78,7 +99,6 @@ function moveDigitalisation(request, response) {
 
             inlineQty += '<div class="form-group container services_section">';
             inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServices" value="MOVE SERVICES" style="width:100%;"></div>';
-            /*inlineQty += '<div class="col-sm-6"><input type="text" class="form-control servicesMoved hide" id="servicesMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServicesMoved" class="btn btn-info servicesMoved hide" value="UPDATE"style="width:100%"/></div></div>';*/
             inlineQty += '<div class="col-sm-8">';
             inlineQty += progressBar('services', servicesLength);
             inlineQty += '</div></div></div>';
@@ -123,8 +143,6 @@ function moveDigitalisation(request, response) {
             inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary moveServiceLegs" value="MOVE SERVICE LEGS AND FREQUENCIES" style="width:100%;"></div>';
             inlineQty += '<div class="col-sm-8">';
             inlineQty += progressBar('legs_and_frequencies', legsLength);
-            /*            inlineQty += '<div class="col-sm-6"><input type="text" class="form-control serviceLegsMoved hide" id="serviceLegsMoved" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsMoved hide" value="UPDATE" style="width:100%"/></div></div>';*/
-
             inlineQty += '</div></div></div>';
 
             inlineQty += '<div class="form-group container territory_buying_section hide">';
@@ -135,13 +153,10 @@ function moveDigitalisation(request, response) {
             inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary inactivateLegs" value="INACTIVATE SERVICE LEGS AND FREQUENCIES" style="width:100%;"></div>';
             inlineQty += '<div class="col-sm-8">';
             inlineQty += progressBar('inactivate_legs_and_frequencies', legsLength);
-            /*inlineQty += '<div class="col-sm-6"><input type="text" class="form-control serviceLegsInactivated hide" readonly/></div><div class="col-sm-2"><input type="button" id="updateServiceLegsMoved" class="btn btn-info serviceLegsInactivated hide" value="UPDATE"style="width:100%"/></div></div>';*/
-
             inlineQty += '</div></div></div>';
 
             form.addField('custpage_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(zee_id);
             form.addField('custpage_new_zee_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(new_zee_id);
-            form.addField('custpage_action', 'text', 'Customer ID').setDisplayType('hidden');
             form.addField('custpage_services_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(services_moved);
             form.addField('custpage_servicelegs_moved', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_moved);
             form.addField('custpage_servicelegs_inactivated', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(serviceLegs_inactivated);
@@ -149,25 +164,29 @@ function moveDigitalisation(request, response) {
             form.addField('custpage_services_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(servicesLength);
             form.addField('custpage_legs_length', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(legsLength);
 
-            form.addSubmitButton('Move Digitalisation');
         }
 
         form.addField('preview_table', 'inlinehtml', '').setLayoutType('startrow').setDefaultValue(inlineQty);
+        form.addField('custpage_action', 'text', 'Customer ID').setDisplayType('hidden');
 
+        form.addSubmitButton('Customer List View');
         form.addButton('back', 'Back', 'onclick_back()');
         form.setScript('customscript_cl_move_digitalisation');
         response.writePage(form);
     } else {
-        nlapiLogExecution('DEBUG', 'FORM SENT');
         var action = request.getParameter('custpage_action');
         var zee_id = request.getParameter('custpage_zee_id');
         var new_zee_id = request.getParameter('custpage_new_zee_id');
         var run = request.getParameter('custpage_run');
         var servicesLength = request.getParameter('custpage_services_length');
         var legsLength = request.getParameter('custpage_legs_length');
-        nlapiLogExecution('DEBUG', 'action', action);
+        var jobsLength = request.getParameter('custpage_jobs_length');
 
+        var cust_id = request.getParameter('custpage_customer_id');
+        var new_cust_id = request.getParameter('custpage_new_customer_id');
         var cust_zee_id = request.getParameter('custpage_cust_zee_id');
+
+        nlapiLogExecution('DEBUG', 'action', action);
 
         if (!isNullorEmpty(zee_id)) {
             if (action == 'move services') {
@@ -216,13 +235,35 @@ function moveDigitalisation(request, response) {
                 }
                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress_inactivate);
             }
-        } else {
-            var params = {
-                scriptid: 'customscript_sl_full_calendar',
-                deployid: 'customdeploy_sl_full_calender',
-                zee: cust_zee_id
+        } else if (!isNullorEmpty(cust_id)) {
+            if (action == 'move legs and frequencies') {
+                var params = {
+                    custscript_cust_id: cust_id,
+                    custscript_new_cust_id: new_cust_id
+                }
+                var status = nlapiScheduleScript('customscript_ss_move_legs', 'customdeploy1', params);
+                nlapiLogExecution('DEBUG', 'status', status);
+                var params_legsProgress = {
+                    cust_id: cust_id,
+                    serviceLegs_moved: 'T',
+                    legsLength: parseInt(legsLength),
+                }
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress);
+            } else if (action == 'move jobs') {
+                var params = {
+                    custscript_cust_id_2: cust_id,
+                    custscript_new_cust_id_2: new_cust_id
+                }
+                var status = nlapiScheduleScript('customscript_ss_move_jobs', 'customdeploy1', params);
+                nlapiLogExecution('DEBUG', 'status', status);
+                var params_jobsProgress = {
+                    cust_id: cust_id,
+                    jobs_moved: 'T',
+                    legsLength: parseInt(legsLength),
+                    jobsLength: parseInt(jobsLength)
+                }
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_jobsProgress);
             }
-            nlapiSetRedirectURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list', null, params);
         }
     }
 }
@@ -238,25 +279,33 @@ function progressBar(type, nb_records_total) {
     return inlineQty;
 }
 
-function getResultSetLength(type, zee_id) {
+function getResultSetLength(type, zee_id, cust_id) {
     if (type == 'services') {
         nlapiLogExecution('DEBUG', 'services');
         var search = nlapiLoadSearch('customrecord_service', 'customsearch_move_digit_services');
         var filterExpression = [
             ["custrecord_service_franchisee", "is", zee_id],
         ];
-    } else if (type == 'legs_and_frequencies') {
+    } else if (type == 'legs_and_frequencies' || type == 'inactivate_legs_and_frequencies') {
         nlapiLogExecution('DEBUG', 'legs_and_frequencies');
         var search = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
+        if (!isNullorEmpty(zee_id)) {
+            var filterExpression = [
+                ["custrecord_service_leg_franchisee", "is", zee_id],
+                "AND", ["isinactive", "is", 'F'],
+            ];
+        } else if (!isNullorEmpty(cust_id)) {
+            var filterExpression = [
+                ["custrecord_service_leg_customer", "is", cust_id],
+                "AND", ["isinactive", "is", 'F'],
+            ];
+        }
+    } else if (type == 'jobs') {
+        nlapiLogExecution('DEBUG', 'jobs');
+        var search = nlapiLoadSearch('customrecord_job', 'customsearch_move_digit_jobs');
         var filterExpression = [
-            ["custrecord_service_leg_franchisee", "is", zee_id],
-        ];
-    } else if (type == "inactivate_legs_and_frequencies") {
-        nlapiLogExecution('DEBUG', 'inactivate_legs_and_frequencies');
-        var search = nlapiLoadSearch('customrecord_service_leg', 'customsearch_move_digit_legs');
-        var filterExpression = [
-            ["custrecord_service_leg_franchisee", "is", zee_id],
-            ["isinactive", "is", 'F'],
+            ["custrecord_job_customer", "is", cust_id],
+            "AND", ["custrecord_job_date_scheduled", "within", "thismonth"],
         ];
     }
     search.setFilterExpression(filterExpression);
