@@ -234,6 +234,13 @@ function moveDigitalisation(request, response) {
                     legsLength: parseInt(legsLength),
                 }
                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_legsProgress_inactivate);
+            } else {
+                var params = {
+                scriptid: 'customscript_sl_full_calendar',
+                deployid: 'customdeploy_sl_full_calender',
+                zee: new_zee_id
+            }
+            nlapiSetRedirectURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list', null, params);
             }
         } else if (!isNullorEmpty(cust_id)) {
             if (action == 'move legs and frequencies') {
@@ -263,6 +270,13 @@ function moveDigitalisation(request, response) {
                     jobsLength: parseInt(jobsLength)
                 }
                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_move_digitalisation', 'customdeploy_sl_move_digitalisation', null, params_jobsProgress);
+            } else {
+                var params = {
+                scriptid: 'customscript_sl_full_calendar',
+                deployid: 'customdeploy_sl_full_calender',
+                zee: cust_zee_id
+            }
+            nlapiSetRedirectURL('SUITELET', 'customscript_sl_rp_customer_list', 'customdeploy_sl_rp_customer_list', null, params);
             }
         }
     }
