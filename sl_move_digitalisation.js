@@ -107,7 +107,7 @@ function moveDigitalisation(request, response) {
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-sm-2"></div>'
             inlineQty += '<div class="col-sm-4"><div class="input-group"><input type="text" readonly value="Old Zee --> New Zee" class="form-control input-group-addon"/> <span class="input-group-addon"><input type="radio" id="old_to_new" class="old_to_new" name="radio"/></span></div></div>';
-            inlineQty += '<div class="col-sm-4"><div class="input-group"><input type="text" readonly value="Territory buying" class="form-control input-group-addon"/> <span class="input-group-addon"><input type="radio"  id="territory_buying" class="territory_buying" name="radio"/></span></div></div>';
+            inlineQty += '<div class="col-sm-4"><div class="input-group"><input type="text" readonly value="Old Zee --> Existing Zee" class="form-control input-group-addon"/> <span class="input-group-addon"><input type="radio"  id="territory_buying" class="territory_buying" name="radio"/></span></div></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
 
@@ -147,7 +147,7 @@ function moveDigitalisation(request, response) {
 
             inlineQty += '<div class="form-group container territory_buying_section hide">';
             inlineQty += '<div class="row">';
-            inlineQty += '<div class="col-sm-12 heading1"><h4><span class="label label-default col-sm-12">SCENARIO 2 : TERRITORY BUYING THE ZEE</span></h4></div>';
+            inlineQty += '<div class="col-sm-12 heading1"><h4><span class="label label-default col-sm-12">SCENARIO 2 : OLD ZEE --> EXISTING ZEE</span></h4></div>';
             inlineQty += '</div>';
 
             inlineQty += '<div class="row" style="margin-top:10px"><div class="col-sm-4"><input type="button" class="btn btn-primary inactivateLegs" value="INACTIVATE SERVICE LEGS AND FREQUENCIES" style="width:100%;"></div>';
