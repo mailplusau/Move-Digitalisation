@@ -134,11 +134,14 @@ function moveLegs() {
                 return true;
             });
             nlapiLogExecution('DEBUG', 'customerScheduled', customerScheduled);
+            var customer_record = nlapiLoadRecord('customer', customer_id);
             if (customerScheduled == true) {
-                var customer_record = nlapiLoadRecord('customer', new_cust_id);
                 customer_record.setFieldValue('custentity_run_scheduled', 1);
-                nlapiSubmitRecord(customer_record);
+
+            } else if (customerScheduled == false) {
+                customer_record.setFieldValue('custentity_run_scheduled', 2);
             }
+            nlapiSubmitRecord(customer_record);
         }
     }
 }
